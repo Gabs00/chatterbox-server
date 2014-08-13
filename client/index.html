@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>chatterbox</title>
+    <link rel="stylesheet" href="styles/styles.css">
+
+    <!-- dependencies -->
+    <script src="bower_components/jquery/jquery.min.js"></script>
+    <script src="bower_components/underscore/underscore.js"></script>
+    <!-- your scripts -->
+    <script src="scripts/config.js"></script>
+    <script src="scripts/Parse.js"></script>
+    <script src="scripts/Messages.js"></script>
+    <script src="scripts/app.js"></script>
+
+  </head>
+  <body>
+    <div id="main">
+      <h1>chatterbox</h1>
+      <!-- Your HTML goes here! -->
+      <div class="viewport">
+        <div class="chatbox">
+          <ul class="chat"></ul>
+          <div class="chatrooms"><ul class="rooms"></ul></div>
+        </div>
+        <div class="userlist"></div>
+        <div clss="send">
+          <form>
+            <input type="text" class="mess"/>
+            <input type="submit" value="Send"/>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
