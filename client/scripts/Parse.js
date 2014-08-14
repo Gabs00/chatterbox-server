@@ -1,5 +1,5 @@
 var Parse = function(){
-  this.base = "https://api.parse.com/1/classes/";
+  this.base = "http://localhost:3000/1/classes/";
   this.parseClass = "chatterbox";
   this.currentUrl = this.base;
   this.intIds = {};
@@ -22,6 +22,7 @@ Parse.prototype.getCurrentUrl = function(){
   return this.currentUrl;
 };
 
+//GET REQUEST
 Parse.prototype.getMessages = function(callback, filter, parseClass){
   if(typeof callback !== 'function'){
     throw "First arg should be a callback";
