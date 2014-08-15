@@ -1,6 +1,6 @@
 var Parse = function(){
-  this.base = "http://localhost:3000/1/classes/";
-  this.parseClass = "chatterbox";
+  this.base = "http://localhost:3000/classes";
+  this.parseClass = "messages";
   this.currentUrl = this.base;
   this.intIds = {};
   
@@ -9,7 +9,7 @@ var Parse = function(){
 Parse.prototype = {};
 
 Parse.prototype.setClass = function(parseClass){
-  this.parseClass = parseClass || "chatterbox";
+  this.parseClass = parseClass || "/messages";
 };
 
 Parse.prototype.setcurrentUrl = function(parseClass){
@@ -28,15 +28,14 @@ Parse.prototype.getMessages = function(callback, filter, parseClass){
     throw "First arg should be a callback";
   }
   var url = this.setcurrentUrl(parseClass);
-
-  url+= this.Filter( filter );
-  console.log(url);
+  var json = this.Filter(filter);
   $.ajax({
     url: url,
     type: 'GET',
-    success: function(data){
-      if(data.results.length > 0){
-        console.log(data);
+    data: json,
+    success: function(resp){
+      var data = JSON.parse(resp);
+      if(data.results){
         callback(_.map(data.results, function(v){
           return v;
         }));
@@ -84,7 +83,7 @@ Parse.prototype.clearAsyncLoop = function(func){
   clearInterval(this.intIds[JSON.stringify(func.toString())]);
 };
 Parse.prototype.Filter = function(whereClause){
-  return "?where="+JSON.stringify(whereClause);
+  return "where="+JSON.stringify(whereClause);
 };
 
 Parse.prototype.sendMessage = function(message, callback, parseClass){ 
@@ -97,8 +96,7 @@ Parse.prototype.sendMessage = function(message, callback, parseClass){
   else if(typeof callback !== 'function'){
     throw "Callback should be a function";
   }
-  var url = this.setcurrentUrl(parseClass)+'?'+ JSON.stringify(message);
-  console.log(url);
+  var url = this.setcurrentUrl(parseClass);
   $.ajax({
     url: url,
     type:'POST',

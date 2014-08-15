@@ -1,0 +1,28 @@
+{
+  "name": "2014-07-chatterbox-server",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Gabs00/2014-07-chatterbox-server",
+  "authors": [
+    "Gabs00 <gewen87@gmail.com>"
+  ],
+  "description": "server for chatterbox",
+  "main": "client/index.html",
+  "keywords": [
+    "chat"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "client/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.0.3",
+    "underscore": "~1.6.0",
+    "angular": "~1.2.22",
+    "angular-ui-router": "~0.2.10"
+  }
+}

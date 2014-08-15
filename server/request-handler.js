@@ -4,7 +4,7 @@
  * You'll have to figure out a way to export this function from
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
-
+var url = require('url');
 
 var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
@@ -16,7 +16,7 @@ var defaultCorsHeaders = {
 var RequestHandler = function(){
   this.header = defaultCorsHeaders;
   this.storage = {
-    results: []
+    rooms: {}
   };
 
   this.statusCodes = {
@@ -29,16 +29,16 @@ var RequestHandler = function(){
   ///1/classes/messages
   this.type = {
     GET: {
-      "/classes/messages": function(request, response){ 
-          self.getMessages(request,response);
+      "classes": function(request, response, room){ 
+          self.getMessages(request,response, room);
         },//func
       "/" : function(){
           self.defaultLocation(request, response);
       }
     },
     POST: {
-      "/classes/messages": function(request, response){
-        self.postMessages(request, response);
+      "classes": function(request, response, room){
+        self.postMessages(request, response, room);
       }
     }
 
@@ -49,41 +49,78 @@ var RequestHandler = function(){
   this.handler = this.handleRequest;
 };
 
+RequestHandler.prototype.buildResults = function(room){
+  var rooms = this.storage.rooms;
+  
+  //Our result array that will be parsed to json
+  var result = [];
+
+  //If no room is passed
+  if(room === 'lobby'){
+    for(var prop in rooms){
+      result = result.concat(rooms[prop]);
+    }
+  }else if (Array.isArray(room) ){
+    //The list of rooms requested
+    room.forEach(function(r){
+      for(var prop in rooms){
+        if(r === prop){
+          result = result.concat(rooms[prop]);
+        }
+      }
+    });
+  }else{  
+    result = this.storage.rooms[room] || [];
+  }
+  
+  return JSON.stringify({ results: result });
+};
+
 RequestHandler.prototype.writeHead = function(statusCode, response){
   response.writeHead(statusCode, this.header);
 
 };
-RequestHandler.prototype.postMessages = function(request, response){
+RequestHandler.prototype.postMessages = function(request, response, room){
   var self = this;
+  var data = "";
   //console.log("is request" + req);
   request.on("data", function(body){
-    self.parseMessage(body, response);
+    data += body;
   });
-/* request.on("end", function(error, data){
-    self.writeHead(self.statusCode['accept'], response);
-  }); */
+
+ request.on("end", function(){
+    
+    self.parseMessage(data, response, room);
+  }); 
 };
 
-RequestHandler.prototype.parseMessage = function(message, response){
+RequestHandler.prototype.parseMessage = function(message, response, room){
   var obj = {};
+  var names = this.storage.rooms;
+  if(names[room] === undefined){
+    names[room] = [];
+  }
   try{
     obj = JSON.parse(message);
   } catch(e) {
     this.writeHead(this.statusCodes["bad-request"], response);
+    console.log(message);
     response.end(e.message);
     return;
   }
-  this.storage.results.push(obj);
+
+  names[room].push(obj);
   this.writeHead(this.statusCodes.created, response);
-  response.end(JSON.stringify(this.storage));
+  response.end(this.buildResults(room));
 };
 
-RequestHandler.prototype.getMessages = function(request, response){
+RequestHandler.prototype.getMessages = function(request, response, room){
 
   var headers = {};
   headers['Content-Type'] = "text/html";
   response.writeHead(this.statusCodes.accept, headers);
-  response.end(JSON.stringify(this.storage));
+  var results = this.buildResults(room);
+  response.end(results);
 }; 
 RequestHandler.prototype.setStorage = function(data){
   this.storage = data;
@@ -99,10 +136,15 @@ RequestHandler.prototype.defaultLocation = function(request, response){
   
 RequestHandler.prototype.handleRequest = function(request, response) {
  // console.log("Serving request type " + request.method + " for url " + request.url);
+  var path = url.parse(request.url).pathname.split("/");
+  path.shift();
 
-  var requestFunc = this.type[request.method][request.url]; //(request, response);
+  //if path is undefined or equals message, room defaults to lobby
+  path[1] = (path[1] === undefined || path[1]  === "messages") ? "lobby" : path[1];    
+  
+  var requestFunc = this.type[request.method][path[0]]; //(request, response);
   if(requestFunc !== undefined){
-    requestFunc(request, response);
+    requestFunc(request, response, path[1]);
   }else{
     response.writeHead(this.statusCodes["not-found"]);
     response.end("error");
